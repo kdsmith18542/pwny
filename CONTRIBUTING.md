@@ -1,131 +1,67 @@
-# Contributing to MSF-Go
+# Contributing to Pwny
 
-Thank you for your interest in contributing to MSF-Go! This guide will help you get started with contributing to the project.
+## Getting Started
 
-## 📋 Table of Contents
+1. Fork the repository
+2. Clone your fork
+3. Run `go mod tidy`
 
-- [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-- [Development Workflow](#development-workflow)
-- [Code Style](#code-style)
-- [Testing](#testing)
-- [Pull Requests](#pull-requests)
-- [Reporting Issues](#reporting-issues)
-- [Feature Requests](#feature-requests)
-- [Documentation](#documentation)
+## Development Workflow
 
-## 👥 Code of Conduct
+1. Create a branch: `git checkout -b feature/your-feature`
+2. Make changes, following existing code style
+3. Run tests: `go test -count=1 ./...`
+4. Format: `gofmt -l -w .`
+5. Lint: `go vet ./...`
+6. Commit with a descriptive message
+7. Push and open a PR against `main`
 
-This project adheres to the [Contributor Covenant](https://www.contributor-covenant.org/version/2/1/code_of_conduct/). By participating, you are expected to uphold this code.
-
-## 🚀 Getting Started
-
-1. Fork the repository on GitHub
-2. Clone your fork locally
-   ```bash
-   git clone https://github.com/yourusername/msfgo.git
-   cd msfgo
-   ```
-3. Set up the development environment:
-   ```bash
-   go mod tidy
-   ```
-
-## 🔧 Development Workflow
-
-1. Create a new branch for your changes:
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-2. Make your changes following the code style guidelines
-
-3. Run tests:
-   ```bash
-   go test ./...
-   ```
-
-4. Commit your changes with a descriptive message:
-   ```bash
-   git commit -m "Add: Brief description of changes"
-   ```
-
-5. Push to your fork:
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-6. Open a pull request against the `main` branch
-
-## 🎨 Code Style
-
-- Follow the [Effective Go](https://golang.org/doc/effective_go.html) guidelines
-- Use `gofmt` for code formatting
-- Keep lines under 120 characters
-- Use meaningful variable and function names
-- Add comments for exported functions and types
-- Write unit tests for new functionality
-
-### Linting
-
-Run the linter before submitting a PR:
-```bash
-golangci-lint run
-```
-
-## 🧪 Testing
+## Testing
 
 - Write tests for new features and bug fixes
-- Run all tests:
-  ```bash
-  go test ./...
-  ```
-- Run tests with coverage:
-  ```bash
-  go test -coverprofile=coverage.out ./...
-  go tool cover -html=coverage.out
-  ```
+- Run all tests: `go test -count=1 ./...`
+- Coverage: `go test -coverprofile=coverage.out ./...` then `go tool cover -html=coverage.out`
 
-## 🔄 Pull Requests
+## Documentation
 
-1. Keep PRs focused on a single feature or bug fix
-2. Update documentation as needed
-3. Include tests for new functionality
-4. Ensure all tests pass
-5. Update the [CHANGELOG.md](CHANGELOG.md)
-6. Request reviews from maintainers
-
-## 🐛 Reporting Issues
-
-When reporting issues, please include:
-
-1. A clear title and description
-2. Steps to reproduce the issue
-3. Expected vs actual behavior
-4. Version information (Go version, OS, etc.)
-5. Any relevant logs or error messages
-
-## 💡 Feature Requests
-
-We welcome feature requests! Please:
-
-1. Check if the feature already exists
-2. Explain why this feature would be valuable
-3. Include any relevant use cases
-
-## 📚 Documentation
-
-Good documentation is crucial. When adding new features:
-
+When adding new features:
 1. Update relevant `.md` files
-2. Add GoDoc comments for public APIs
-3. Include usage examples
-4. Update the [PROGRESS.md](docs/PROGRESS.md) if applicable
+2. Add GoDoc comments for exported types and functions
+3. Update progress in `docs/PROGRESS.md`
 
-## 🤝 Community
+## Code Style
 
-Join our community on [Discord/Slack] to discuss ideas, ask questions, and collaborate with other contributors.
+- Follow [Effective Go](https://golang.org/doc/effective_go.html)
+- Use `gofmt` for formatting
+- Meaningful variable and function names
+- Write unit tests for new functionality
 
-## 🙏 Thank You!
+## Module Development
 
-Your contributions make MSF-Go better for everyone. Thank you for your time and effort!
+Modules register themselves via `init()`:
+
+```go
+package mymodule
+
+import "github.com/msfgo/msfgo/internal/core"
+
+type MyModule struct {
+    *core.BaseModule
+}
+
+func New() *MyModule {
+    m := &MyModule{BaseModule: core.NewBaseModule(core.TypeAuxiliary, "my_module")}
+    m.RegisterOption("RHOST", "Target host", true, nil)
+    return m
+}
+
+func (m *MyModule) Run() (interface{}, error) {
+    return "module output", nil
+}
+
+func init() {
+    core.Register("auxiliary/my_module", func() core.Module {
+        return New()
+    })
+}
+```

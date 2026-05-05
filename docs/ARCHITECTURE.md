@@ -1,72 +1,84 @@
-# MSF-Go Architecture
+# Pwny Architecture
+
+## Design Principles
+
+1. **API-First** — Everything the GUI does goes through REST + WebSocket
+2. **Headless by Default** — The engine runs as a server; GUI and CLI are equal consumers
+3. **Static Module Registration** — No Go plugins; modules register via `init()` at compile time
+4. **Event-Driven** — Internal event bus pushes state changes to WebSocket clients
+5. **Graceful Degradation** — Operates in memory-only mode if SQLite is unavailable
+
+## Layers
+
+```
+┌──────────────────────────────────────┐
+│           Tauri Desktop App           │
+│     (React + xterm.js + Zustand)      │
+└──────────────┬───────────────────────┘
+               │ HTTP/WS (localhost:31337)
+┌──────────────┴───────────────────────┐
+│         HTTP API Server (Go)          │
+│  chi router + gorilla/websocket       │
+│  ┌─────────┐ ┌─────────┐ ┌────────┐  │
+│  │ Modules │ │Session  │ │Payload │  │
+│  └────┬────┘ └────┬────┘ └───┬────┘  │
+│       │           │          │        │
+│  ┌────┴────┐ ┌────┴────┐ ┌──┴─────┐  │
+│  │ Registry│ │Session  │ │DB Layer│  │
+│  │         │ │Manager  │ │(SQLite)│  │
+│  └─────────┘ └─────────┘ └────────┘  │
+└──────────────────────────────────────┘
+```
 
 ## Core Components
 
-### Module System
-- [ ] Module loader
-- [ ] Module metadata
-- [ ] Module execution environment
-- [ ] Module dependencies
+### Module System (internal/core/)
 
-### Session Management
-- [ ] Session handling
-- [ ] Session types (Meterpreter, Shell, etc.)
-- [ ] Session interaction
+- **Module interface**: `Info()`, `Options()`, `SetOption()`, `Validate()`, `Run()`
+- **BaseModule**: Default implementation with option tracking
+- **Registry**: Static `map[string]ModuleFactory` with init()-time registration
+- **Config**: YAML via viper, environment variable overrides (`PWNY_*`)
 
-### Payload Generation
-- [ ] Payload types
-- [ ] Encoding/encryption
-- [ ] Stager generation
+### Session Management (internal/api/ + internal/core/)
+
+- **Session interface**: `Read`, `Write`, `Execute`, `Close`, `Upload`, `Download`
+- **SessionManager**: Thread-safe registry backed by map, create/list/get/close
+- **WebSocket relay**: Real-time session I/O via gorilla/websocket
+
+### Persistence (internal/db/)
+
+- **SQLite**: Workspaces, hosts, services, credentials, notes, event_log
+- **BoltDB**: Reserved for ephemeral session state (future)
+
+### API Server (internal/api/)
+
+- **HTTP**: chi router with CORS, logging, recovery middleware
+- **WebSocket**: Session terminal I/O, event stream for push updates
+- **Endpoints**: Module CRUD, Session CRUD, status, events
 
 ## Database Schema
 
-```sql
--- Core tables
-CREATE TABLE modules (
-    id TEXT PRIMARY KEY,
-    type TEXT NOT NULL,
-    name TEXT NOT NULL,
-    description TEXT,
-    authors TEXT[],
-    references TEXT[],
-    platform TEXT[],
-    arch TEXT[],
-    targets JSONB,
-    options JSONB,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
-);
+Tables: `workspaces`, `hosts`, `services`, `credentials`, `notes`, `loots`, `event_log`
 
--- Vector search extension for semantic search
-CREATE VIRTUAL TABLE module_search USING fts5(
-    module_id,
-    name,
-    description,
-    content='modules',
-    content_rowid='rowid'
-);
+See [internal/db/database.go](internal/db/database.go) for current DDL.
+
+## Module System
+
+Modules are Go source files in `modules/` that self-register via `init()`:
+
+```go
+func init() {
+    core.Register("exploit/windows/smb/ms17_010", func() core.Module {
+        return &MS17_010{...}
+    })
+}
 ```
 
-## API Design
+This replaces the prior Go-plugin approach (Linux-only, version-sensitive, removed).
 
-### REST API
-- [ ] Module management
-- [ ] Session handling
-- [ ] Job control
+## Future
 
-### gRPC Services
-- [ ] Module execution
-- [ ] Session interaction
-- [ ] Event streaming
-
-## Integration Points
-
-### Pwny GUI Integration
-- [ ] C++ bindings
-- [ ] Event system
-- [ ] Real-time updates
-
-### AI Integration
-- [ ] Semantic search
-- [ ] Attack automation
-- [ ] Recommendation engine
+- **GUI**: Tauri + React desktop app
+- **Payload engine**: Stager/stage generation with encoders
+- **Module library**: Curated top-50 exploits and auxiliary scanners
+- **Event bus**: Pub/sub for cross-component notifications

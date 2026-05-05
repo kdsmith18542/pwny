@@ -1,93 +1,98 @@
-# MSF-Go: Metasploit Framework Port in Go
+# Pwny
 
-A high-performance port of the Metasploit Framework to Go, designed for seamless integration with the Pwny C++ GUI. This project aims to provide a modern, maintainable, and extensible penetration testing framework.
+A modern, modular, cross-platform penetration testing framework with an HTTP API and Web UI (Tauri).
 
-## 🚀 Features
+## Features
 
-- **Modular Architecture**: Plugin-based system for easy extension
-- **High Performance**: Leveraging Go's concurrency model
-- **Cross-Platform**: Runs on Windows, Linux, and macOS
-- **Session Management**: Support for multiple session types (Shell, Meterpreter)
-- **AI Integration**: Built-in support for AI-assisted testing
-- **Semantic Search**: Advanced module and exploit discovery
+- **Modular Architecture**: Static registry pattern for compile-time-safe module loading
+- **REST + WebSocket API**: Headless server mode, build any client on top
+- **Session Management**: Shell and Meterpreter session support with real-time I/O via WebSocket
+- **SQLite Persistence**: Workspace management, host/service tracking, credential store
+- **Cross-Platform**: Single static binary for Windows, Linux, macOS
+- **Configurable**: YAML config file, environment variable overrides
 
-## 📦 Project Structure
+## Quick Start
 
-```
-msfgo/
-├── cmd/               # Main application entry points
-├── docs/              # Documentation
-│   ├── architecture/  # Design documents
-│   ├── progress/      # Progress tracking
-│   └── api/           # API documentation
-├── examples/          # Example modules and usage
-├── internal/          # Core implementation
-│   ├── core/          # Framework core
-│   ├── modules/       # Module implementations
-│   └── utils/         # Shared utilities
-├── pkg/               # Reusable packages
-│   ├── db/            # Database layer
-│   ├── network/       # Network protocols
-│   └── payloads/      # Payload generation
-└── scripts/           # Build and maintenance scripts
+```bash
+# Prerequisites: Go 1.23+
+git clone https://github.com/msfgo/msfgo.git
+cd pwny
+
+go mod tidy
+go build -o bin/pwny-server ./cmd/pwny-server/
+
+# Generate default config, then edit pwny.yaml
+./bin/pwny-server init-config
+
+# Start the API server
+./bin/pwny-server -c pwny.yaml
 ```
 
-## 🛠️ Getting Started
+## Project Structure
 
-### Prerequisites
+```
+pwny/
+├── cmd/pwny-server/     # API server entry point
+├── internal/
+│   ├── core/            # Framework kernel (module interface, registry, config, errors)
+│   ├── session/         # Session management (reserved)
+│   ├── payload/         # Payload generation (reserved)
+│   ├── api/             # REST + WebSocket handlers
+│   ├── db/              # SQLite persistence + migrations
+│   └── network/         # Network primitives (reserved)
+├── modules/             # Module library (exploit, auxiliary, post)
+├── examples/            # Example modules
+├── gui/                 # Tauri desktop app (planned)
+├── docs/                # Documentation
+├── Taskfile.yml         # Build automation
+└── .github/workflows/   # CI pipeline
+```
 
-- Go 1.21 or later
-- GCC (for CGO dependencies)
-- Git
+## API
 
-### Installation
+Server runs on `http://127.0.0.1:31337` by default.
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/msfgo.git
-   cd msfgo
-   ```
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/v1/status` | Server health |
+| `GET` | `/api/v1/modules` | List modules (`?type=exploit` filter) |
+| `GET` | `/api/v1/modules/{name}` | Module details + options |
+| `POST` | `/api/v1/modules/{name}/validate` | Validate module options |
+| `POST` | `/api/v1/modules/{name}/run` | Execute a module |
+| `GET` | `/api/v1/sessions` | List sessions |
+| `GET` | `/api/v1/sessions/{id}` | Session details |
+| `DELETE` | `/api/v1/sessions/{id}` | Close a session |
+| `GET` | `/api/v1/sessions/{id}/ws` | WebSocket session I/O |
+| `GET` | `/api/v1/events` | WebSocket event stream |
 
-2. Install dependencies:
-   ```bash
-   go mod tidy
-   ```
+## Developing
 
-3. Build the project:
-   ```bash
-   go build -o bin/msfgo ./cmd/msfgo
-   ```
+```bash
+# Run all tests
+go test -count=1 ./...
 
-### Running Examples
+# Run with verbose output
+go test -v -count=1 ./...
 
-1. Build the example module:
-   ```bash
-   go build -buildmode=plugin -o bin/hello_world.so examples/hello_world/main.go
-   ```
+# Run with coverage
+go test -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out
 
-2. Run the example:
-   ```bash
-   ./bin/msfgo
-   ```
+# Format code
+gofmt -l -w .
 
-## 📚 Documentation
+# Build everything
+go build ./...
+```
 
-- [Architecture](docs/ARCHITECTURE.md) - High-level design and architecture
-- [Progress](docs/PROGRESS.md) - Current implementation status
-- [API Reference](docs/API.md) - Detailed API documentation
-- [Module Development](docs/MODULE_DEVELOPMENT.md) - Guide for module developers
+See [Taskfile.yml](Taskfile.yml) for more targets (`task build`, `task test`, `task lint`, etc.).
 
-## 🤝 Contributing
+## Documentation
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+- [Architecture](docs/ARCHITECTURE.md)
+- [API Reference](docs/API.md) — to be written
+- [Module Development](docs/MODULE_DEVELOPMENT.md) — to be written
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- The original Metasploit Framework team
-- The Go community for amazing tooling
-- All contributors who help improve this project
->>>>>>> 4554df2 (Initial commit: Core framework implementation)
+MIT
