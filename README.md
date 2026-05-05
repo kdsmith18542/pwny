@@ -95,4 +95,4 @@ See [Taskfile.yml](Taskfile.yml) for more targets (`task build`, `task test`, `t
 
 ## License
 
-MIT
+Apache 2.0 — see [LICENSE](LICENSE) for details.
