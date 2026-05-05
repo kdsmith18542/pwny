@@ -43,4 +43,6 @@ dist/
 .Trashes
 ehthumbs.db
 Thumbs.db
->>>>>>> 4554df2 (Initial commit: Core framework implementation)
+
+# Development planning documents
+plan.md

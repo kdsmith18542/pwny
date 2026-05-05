@@ -3,6 +3,7 @@ package core
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 )
 
 // ModuleType represents the type of module
@@ -81,6 +82,16 @@ func (m *BaseModule) Info() ModuleInfo {
 	return m.info
 }
 
+// SetDescription sets the module description
+func (m *BaseModule) SetDescription(desc string) {
+	m.info.Description = desc
+}
+
+// SetAuthors sets the module authors
+func (m *BaseModule) SetAuthors(authors []string) {
+	m.info.Authors = authors
+}
+
 // Options returns the module's configurable options
 func (m *BaseModule) Options() map[string]ModuleOption {
 	return m.options
@@ -91,24 +102,28 @@ func (m *BaseModule) SetOption(name string, value interface{}) error {
 	if opt, exists := m.options[name]; exists {
 		opt.Value = value
 		m.options[name] = opt
+		slog.Debug("option set", "module", m.info.Name, "option", name)
 		return nil
 	}
+	slog.Warn("attempted to set unknown option", "module", m.info.Name, "option", name)
 	return fmt.Errorf("unknown option: %s", name)
 }
 
 // Validate checks if the module is properly configured
 func (m *BaseModule) Validate() error {
-	// Check required options
 	for name, opt := range m.options {
 		if opt.Required && opt.Value == nil {
+			slog.Warn("validation failed", "module", m.info.Name, "option", name, "reason", "required but nil")
 			return fmt.Errorf("missing required option: %s", name)
 		}
 	}
+	slog.Debug("validation passed", "module", m.info.Name)
 	return nil
 }
 
 // Run is a placeholder that should be overridden by actual implementations
 func (m *BaseModule) Run() (interface{}, error) {
+	slog.Warn("Run() called on BaseModule; module may not implement Run", "module", m.info.Name)
 	return nil, fmt.Errorf("not implemented")
 }
 

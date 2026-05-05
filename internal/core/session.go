@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"log/slog"
 	"sync"
 	"time"
 )
@@ -103,10 +104,8 @@ func (sm *SessionManager) NewSession(sessionType SessionType, conn interface{}) 
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
-	// Generate a unique session ID
 	sessionID := generateSessionID()
 
-	// Create session based on type
 	var session Session
 	var err error
 
@@ -123,9 +122,8 @@ func (sm *SessionManager) NewSession(sessionType SessionType, conn interface{}) 
 		return nil, fmt.Errorf("failed to create session: %v", err)
 	}
 
-	// Store the session
 	sm.sessions[sessionID] = session
-
+	slog.Info("session created", "session_id", sessionID, "type", sessionType)
 	return session, nil
 }
 
@@ -165,14 +163,13 @@ func (sm *SessionManager) CloseSession(sessionID string) error {
 		return fmt.Errorf("session not found: %s", sessionID)
 	}
 
-	// Close the session
 	if err := session.Close(); err != nil {
+		slog.Error("error closing session", "session_id", sessionID, "error", err)
 		return fmt.Errorf("error closing session: %v", err)
 	}
 
-	// Remove from active sessions
 	delete(sm.sessions, sessionID)
-
+	slog.Info("session closed", "session_id", sessionID)
 	return nil
 }
 

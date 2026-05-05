@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net"
 	"sync"
-	"time"
 )
 
 // Meterpreter constants
@@ -95,14 +95,14 @@ func newMeterpreterSession(sessionID string, conn interface{}, useTLS bool) (Ses
 		info.Arch = "unknown"
 	})
 
-	// Start the packet handler
+	slog.Info("meterpreter session created", "session_id", sessionID, "tls", useTLS)
 	go session.packetHandler()
 
 	return session, nil
 }
 
 // packetHandler processes incoming meterpreter packets
-func (m *meterpreterPacket) packetHandler() {
+func (m *meterpreterSession) packetHandler() {
 	for {
 		packet, err := m.readPacket()
 		if err != nil {

@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"net"
 	"sync"
 	"time"
@@ -38,7 +39,7 @@ func newShellSession(sessionID string, conn interface{}) (Session, error) {
 		info.Arch = "unknown"
 	})
 
-	// Start keepalive goroutine
+	slog.Info("shell session created", "session_id", sessionID)
 	go session.keepalive()
 
 	return session, nil
@@ -50,13 +51,15 @@ func (s *shellSession) Write(data []byte) (int, error) {
 	defer s.mu.Unlock()
 
 	n, err := s.writer.Write(data)
-	if err == nil {
-		s.UpdateInfo(func(info *SessionInfo) {
-			info.LastActivity = time.Now()
-		})
+	if err != nil {
+		slog.Warn("shell write error", "session_id", s.info.ID, "error", err)
+		return n, err
 	}
 
-	return n, err
+	s.UpdateInfo(func(info *SessionInfo) {
+		info.LastActivity = time.Now()
+	})
+	return n, nil
 }
 
 // Read receives data from the shell session

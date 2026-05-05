@@ -1,0 +1,79 @@
+version: '3'
+
+vars:
+  APP: pwny-server
+  BIN_DIR: bin
+
+tasks:
+  default:
+    deps: [build]
+
+  build:
+    desc: Build the server binary
+    cmds:
+      - go build -o "{{.BIN_DIR}}/{{.APP}}{{exeExt}}" ./cmd/{{.APP}}/
+    generates:
+      - "{{.BIN_DIR}}/{{.APP}}{{exeExt}}"
+
+  build-all:
+    desc: Build all packages
+    cmds:
+      - go build ./...
+
+  install:
+    desc: Build and install the server binary
+    cmds:
+      - go install ./cmd/{{.APP}}/
+
+  run:
+    desc: Build and run the server
+    deps: [build]
+    cmds:
+      - "{{.BIN_DIR}}/{{.APP}}{{exeExt}}"
+
+  test:
+    desc: Run all tests
+    cmds:
+      - go test -count=1 -timeout 60s ./...
+
+  test-verbose:
+    desc: Run all tests with verbose output
+    cmds:
+      - go test -v -count=1 -timeout 60s ./...
+
+  test-cover:
+    desc: Run tests with coverage
+    cmds:
+      - go test -count=1 -timeout 60s -coverprofile=coverage.out ./...
+      - go tool cover -html=coverage.out -o coverage.html
+
+  lint:
+    desc: Run linters
+    cmds:
+      - go vet ./...
+
+  fmt:
+    desc: Format all Go code
+    cmds:
+      - gofmt -l -w .
+
+  tidy:
+    desc: Tidy Go modules
+    cmds:
+      - go mod tidy
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -rf {{.BIN_DIR}}/
+      - rm -f coverage.out coverage.html
+
+  dev:
+    desc: Run server with hot-reload (requires air)
+    cmds:
+      - air -- --config pwny.yaml
+
+  init-config:
+    desc: Write default config file
+    cmds:
+      - go run ./cmd/{{.APP}}/ init-config
