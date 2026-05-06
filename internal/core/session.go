@@ -16,11 +16,11 @@ import (
 type SessionType string
 
 const (
-	SessionTypeMeterpreter SessionType = "meterpreter"
-	SessionTypeShell       SessionType = "shell"
-	SessionTypeMeterpreterss SessionType = "meterpreter_ssl"
-	SessionTypeHTTP        SessionType = "http"
-	SessionTypeHTTPS       SessionType = "https"
+	SessionTypeMeterpreter    SessionType = "meterpreter"
+	SessionTypeShell          SessionType = "shell"
+	SessionTypeMeterpreterSSL SessionType = "meterpreter_ssl"
+	SessionTypeHTTP           SessionType = "http"
+	SessionTypeHTTPS          SessionType = "https"
 )
 
 // SessionStatus represents the status of a session
@@ -115,8 +115,8 @@ func (sm *SessionManager) NewSession(sessionType SessionType, conn interface{}) 
 	switch sessionType {
 	case SessionTypeShell:
 		session, err = newShellSession(sessionID, conn)
-	case SessionTypeMeterpreter, SessionTypeMeterpreterss:
-		session, err = newMeterpreterSession(sessionID, conn, sessionType == SessionTypeMeterpreterss)
+	case SessionTypeMeterpreter, SessionTypeMeterpreterSSL:
+		session, err = newMeterpreterSession(sessionID, conn, sessionType == SessionTypeMeterpreterSSL)
 	default:
 		return nil, fmt.Errorf("unsupported session type: %s", sessionType)
 	}
@@ -179,7 +179,10 @@ func (sm *SessionManager) CloseSession(sessionID string) error {
 // generateSessionID creates a unique session identifier
 func generateSessionID() string {
 	buf := make([]byte, 8)
-	rand.Read(buf)
+	if _, err := rand.Read(buf); err != nil {
+		slog.Error("failed to generate session ID", "error", err)
+		return hex.EncodeToString([]byte(fmt.Sprintf("%d", time.Now().UnixNano())))
+	}
 	return hex.EncodeToString(buf)
 }
 

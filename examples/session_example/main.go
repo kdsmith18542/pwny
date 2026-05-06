@@ -8,7 +8,7 @@ import (
 	"log"
 	"net"
 
-	"github.com/msfgo/msfgo/internal/core"
+	"github.com/kdsmith18542/pwny/internal/core"
 )
 
 func main() {

@@ -13,12 +13,12 @@ import (
 type ModuleType string
 
 const (
-	TypeExploit  ModuleType = "exploit"
-	TypePayload  ModuleType = "payload"
+	TypeExploit   ModuleType = "exploit"
+	TypePayload   ModuleType = "payload"
 	TypeAuxiliary ModuleType = "auxiliary"
-	TypePost     ModuleType = "post"
-	TypeEncoder  ModuleType = "encoder"
-	TypeNOP      ModuleType = "nop"
+	TypePost      ModuleType = "post"
+	TypeEncoder   ModuleType = "encoder"
+	TypeNOP       ModuleType = "nop"
 )
 
 // ModuleInfo contains metadata about a module

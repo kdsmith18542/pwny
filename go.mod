@@ -1,4 +1,4 @@
-module github.com/msfgo/msfgo
+module github.com/kdsmith18542/pwny
 
 go 1.25.0
 

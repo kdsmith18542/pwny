@@ -6,7 +6,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/msfgo/msfgo/internal/core"
+	"github.com/kdsmith18542/pwny/internal/core"
 )
 
 type HelloWorldModule struct {

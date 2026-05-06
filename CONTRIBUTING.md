@@ -43,7 +43,7 @@ Modules register themselves via `init()`:
 ```go
 package mymodule
 
-import "github.com/msfgo/msfgo/internal/core"
+import "github.com/kdsmith18542/pwny/internal/core"
 
 type MyModule struct {
     *core.BaseModule

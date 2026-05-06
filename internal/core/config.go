@@ -20,16 +20,16 @@ type Config struct {
 }
 
 type APIConfig struct {
-	Host    string `mapstructure:"host"`
-	Port    int    `mapstructure:"port"`
+	Host    string   `mapstructure:"host"`
+	Port    int      `mapstructure:"port"`
 	Allowed []string `mapstructure:"allowed_origins"`
-	TLSKey  string `mapstructure:"tls_key"`
-	TLSCert string `mapstructure:"tls_cert"`
+	TLSKey  string   `mapstructure:"tls_key"`
+	TLSCert string   `mapstructure:"tls_cert"`
 }
 
 type DBConfig struct {
-	Path       string `mapstructure:"path"`
-	CredKey    string `mapstructure:"credential_encryption_key"`
+	Path    string `mapstructure:"path"`
+	CredKey string `mapstructure:"credential_encryption_key"`
 }
 
 type LogConfig struct {

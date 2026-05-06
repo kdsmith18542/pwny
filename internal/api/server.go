@@ -11,16 +11,19 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/msfgo/msfgo/internal/core"
+	"github.com/kdsmith18542/pwny/internal/core"
+	"github.com/kdsmith18542/pwny/internal/db"
 )
 
-var sessionManager = core.NewSessionManager()
-
 type Server struct {
-	router  chi.Router
-	httpSrv *http.Server
-	cfg     Config
-	started time.Time
+	router   chi.Router
+	httpSrv  *http.Server
+	cfg      Config
+	started  time.Time
+	sessions *core.SessionManager
+	jobs     *core.JobManager
+	events   *core.EventBus
+	database *db.Database
 }
 
 type Config struct {
@@ -29,12 +32,16 @@ type Config struct {
 	Allowed []string
 }
 
-func New(cfg Config) *Server {
+func New(cfg Config, sm *core.SessionManager, jm *core.JobManager, bus *core.EventBus, database *db.Database) *Server {
 	r := chi.NewRouter()
 	s := &Server{
-		router:  r,
-		cfg:     cfg,
-		started: time.Now(),
+		router:   r,
+		cfg:      cfg,
+		started:  time.Now(),
+		sessions: sm,
+		jobs:     jm,
+		events:   bus,
+		database: database,
 	}
 	s.registerRoutes()
 	return s
@@ -59,6 +66,13 @@ func (s *Server) Start() error {
 
 func (s *Server) Stop(ctx context.Context) error {
 	slog.Info("api server shutting down")
+
+	if s.database != nil {
+		if err := s.database.Close(); err != nil {
+			slog.Error("error closing database", "error", err)
+		}
+	}
+
 	return s.httpSrv.Shutdown(ctx)
 }
 

@@ -9,7 +9,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/msfgo/msfgo/internal/core"
+	"github.com/kdsmith18542/pwny/internal/core"
 )
 
 type moduleResponse struct {
@@ -142,14 +142,22 @@ func (s *Server) handleRunModule(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result, err := m.Run()
-	if err != nil {
-		writeError(w, http.StatusInternalServerError, err)
-		return
-	}
+	job := s.jobs.Create(name, req.Options)
 
-	writeJSON(w, http.StatusOK, APIResponse{
-		Status: "ok",
-		Data:   map[string]interface{}{"result": result},
+	go func(jobID string) {
+		if err := s.jobs.Start(jobID); err != nil {
+			return
+		}
+		result, runErr := m.Run()
+		if runErr != nil {
+			s.jobs.Fail(jobID, runErr)
+		} else {
+			s.jobs.Complete(jobID, result)
+		}
+	}(job.ID)
+
+	writeJSON(w, http.StatusAccepted, APIResponse{
+		Status: "accepted",
+		Data:   map[string]interface{}{"job_id": job.ID},
 	})
 }

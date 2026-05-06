@@ -7,16 +7,16 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/msfgo/msfgo/internal/core"
+	"github.com/kdsmith18542/pwny/internal/core"
 )
 
 type sessionResponse struct {
-	ID       string            `json:"id"`
-	Type     core.SessionType  `json:"type"`
+	ID       string             `json:"id"`
+	Type     core.SessionType   `json:"type"`
 	Status   core.SessionStatus `json:"status"`
-	Target   string            `json:"target"`
-	Platform string            `json:"platform"`
-	OpenedAt string            `json:"opened_at"`
+	Target   string             `json:"target"`
+	Platform string             `json:"platform"`
+	OpenedAt string             `json:"opened_at"`
 }
 
 func sessionToResponse(info core.SessionInfo) sessionResponse {
@@ -31,7 +31,7 @@ func sessionToResponse(info core.SessionInfo) sessionResponse {
 }
 
 func (s *Server) handleListSessions(w http.ResponseWriter, r *http.Request) {
-	infos := sessionManager.ListSessions()
+	infos := s.sessions.ListSessions()
 	sessions := make([]sessionResponse, 0, len(infos))
 	for _, info := range infos {
 		sessions = append(sessions, sessionToResponse(info))
@@ -41,7 +41,7 @@ func (s *Server) handleListSessions(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleGetSession(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	sess, err := sessionManager.GetSession(id)
+	sess, err := s.sessions.GetSession(id)
 	if err != nil {
 		writeError(w, http.StatusNotFound, err)
 		return
@@ -51,7 +51,7 @@ func (s *Server) handleGetSession(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleCloseSession(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	if err := sessionManager.CloseSession(id); err != nil {
+	if err := s.sessions.CloseSession(id); err != nil {
 		writeError(w, http.StatusNotFound, err)
 		return
 	}

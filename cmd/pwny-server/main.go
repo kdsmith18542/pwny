@@ -10,9 +10,12 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/kdsmith18542/pwny/internal/api"
+	"github.com/kdsmith18542/pwny/internal/core"
+	"github.com/kdsmith18542/pwny/internal/db"
 	"github.com/spf13/cobra"
-	"github.com/msfgo/msfgo/internal/api"
-	"github.com/msfgo/msfgo/internal/core"
+
+	_ "github.com/kdsmith18542/pwny/modules/auxiliary/scanner"
 )
 
 var configPath string
@@ -55,23 +58,35 @@ func runServer() error {
 
 	setupLogging(cfg.Log)
 
+	database, err := db.Open(cfg.DB.Path)
+	if err != nil {
+		return fmt.Errorf("failed to open database: %w", err)
+	}
+
+	eventBus := core.NewEventBus()
+	sessionMgr := core.NewSessionManager()
+	jobMgr := core.NewJobManager(eventBus)
+
 	slog.Info("pwny-server starting",
 		"api_addr", fmt.Sprintf("%s:%d", cfg.API.Host, cfg.API.Port),
 		"db_path", cfg.DB.Path,
+		"modules_loaded", core.ModuleCount(),
 	)
 
 	srv := api.New(api.Config{
 		Host:    cfg.API.Host,
 		Port:    cfg.API.Port,
 		Allowed: cfg.API.Allowed,
-	})
+	}, sessionMgr, jobMgr, eventBus, database)
 
 	go func() {
 		sigCh := make(chan os.Signal, 1)
 		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 		sig := <-sigCh
 		slog.Info("received signal, shutting down", "signal", sig)
-		srv.Stop(nil)
+		if err := srv.Stop(nil); err != nil {
+			slog.Error("error during shutdown", "error", err)
+		}
 		os.Exit(0)
 	}()
 

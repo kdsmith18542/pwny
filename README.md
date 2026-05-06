@@ -15,7 +15,7 @@ A modern, modular, cross-platform penetration testing framework with an HTTP API
 
 ```bash
 # Prerequisites: Go 1.23+
-git clone https://github.com/msfgo/msfgo.git
+git clone https://github.com/kdsmith18542/pwny.git
 cd pwny
 
 go mod tidy

@@ -47,6 +47,35 @@ func (s *Server) registerRoutes() {
 		r.Get("/{id}/ws", s.handleSessionWS)
 	})
 
+	s.router.Route("/api/v1/jobs", func(r chi.Router) {
+		r.Get("/", s.handleListJobs)
+		r.Get("/{id}", s.handleGetJob)
+		r.Post("/{id}/cancel", s.handleCancelJob)
+	})
+
+	s.router.Route("/api/v1/workspaces", func(r chi.Router) {
+		r.Get("/", s.handleListWorkspaces)
+		r.Post("/", s.handleCreateWorkspace)
+		r.Get("/{id}", s.handleGetWorkspace)
+		r.Delete("/{id}", s.handleDeleteWorkspace)
+		r.Get("/{id}/hosts", s.handleListHosts)
+		r.Post("/{id}/hosts", s.handleCreateHost)
+	})
+
+	s.router.Route("/api/v1/hosts", func(r chi.Router) {
+		r.Get("/{id}", s.handleGetHost)
+		r.Put("/{id}", s.handleUpdateHost)
+		r.Delete("/{id}", s.handleDeleteHost)
+		r.Get("/{id}/services", s.handleListServices)
+		r.Post("/{id}/services", s.handleCreateService)
+	})
+
+	s.router.Route("/api/v1/services", func(r chi.Router) {
+		r.Get("/{id}", s.handleGetService)
+		r.Put("/{id}", s.handleUpdateService)
+		r.Delete("/{id}", s.handleDeleteService)
+	})
+
 	s.router.Get("/api/v1/events", s.handleEventStream)
 }
 
@@ -54,9 +83,9 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, APIResponse{
 		Status: "ok",
 		Data: map[string]interface{}{
-			"version":   "0.1.0",
-			"uptime":    time.Since(s.started).String(),
-			"started":   s.started.Format(time.RFC3339),
+			"version": "0.1.0",
+			"uptime":  time.Since(s.started).String(),
+			"started": s.started.Format(time.RFC3339),
 		},
 	})
 }

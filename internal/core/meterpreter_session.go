@@ -23,25 +23,25 @@ const (
 
 // Meterpreter TLV types
 const (
-	TLVTypeString  = 1000 + iota
-	TLVTypeUint    
-	TLVTypeRaw     
-	TLVTypeBool    
-	TLVTypeQWord   
+	TLVTypeString = 1000 + iota
+	TLVTypeUint
+	TLVTypeRaw
+	TLVTypeBool
+	TLVTypeQWord
 	TLVTypeCompressed
-	TLVTypeGroup   
+	TLVTypeGroup
 )
 
 // Meterpreter commands
 const (
-	MeterpreterCoreChannelOpen        = "core_channel_open"
-	MeterpreterCoreChannelWrite       = "core_channel_write"
-	MeterpreterCoreChannelRead        = "core_channel_read"
-	MeterpreterCoreChannelClose       = "core_channel_close"
-	MeterpreterCoreChannelInteract    = "core_channel_interact"
-	MeterpreterCoreGetSessionGuid     = "core_get_session_guid"
-	MeterpreterCoreSetSessionGuid     = "core_set_session_guid"
-	MeterpreterCoreMachineID          = "core_machine_id"
+	MeterpreterCoreChannelOpen     = "core_channel_open"
+	MeterpreterCoreChannelWrite    = "core_channel_write"
+	MeterpreterCoreChannelRead     = "core_channel_read"
+	MeterpreterCoreChannelClose    = "core_channel_close"
+	MeterpreterCoreChannelInteract = "core_channel_interact"
+	MeterpreterCoreGetSessionGuid  = "core_get_session_guid"
+	MeterpreterCoreSetSessionGuid  = "core_set_session_guid"
+	MeterpreterCoreMachineID       = "core_machine_id"
 )
 
 // MeterpreterPacket represents a meterpreter packet
@@ -54,10 +54,10 @@ type MeterpreterPacket struct {
 // meterpreterSession implements a meterpreter session
 type meterpreterSession struct {
 	*BaseSession
-	conn       net.Conn
-	tls        bool
-	requestID  uint32
-	sessionID  string
+	conn         net.Conn
+	tls          bool
+	requestID    uint32
+	sessionID    string
 	sessionMutex sync.Mutex
 	requestMutex sync.Mutex
 }

@@ -11,7 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/websocket"
-	"github.com/msfgo/msfgo/internal/core"
+	"github.com/kdsmith18542/pwny/internal/core"
 )
 
 var upgrader = websocket.Upgrader{
@@ -42,7 +42,7 @@ func (s *Server) registerWSSessionRoutes(r chi.Router) {
 
 func (s *Server) handleSessionWS(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	sess, err := sessionManager.GetSession(id)
+	sess, err := s.sessions.GetSession(id)
 	if err != nil {
 		writeError(w, http.StatusNotFound, err)
 		return
@@ -127,13 +127,18 @@ func (s *Server) handleEventStream(w http.ResponseWriter, r *http.Request) {
 		slog.Error("event stream upgrade failed", "error", err)
 		return
 	}
-	defer conn.Close()
 
 	slog.Info("event stream client connected", "remote", r.RemoteAddr)
 
-	for {
-		_, _, err := conn.ReadMessage()
+	ch := s.events.Subscribe(64)
+	defer s.events.Unsubscribe(ch)
+
+	for evt := range ch {
+		data, err := json.Marshal(evt)
 		if err != nil {
+			continue
+		}
+		if err := conn.WriteMessage(websocket.TextMessage, data); err != nil {
 			return
 		}
 	}
