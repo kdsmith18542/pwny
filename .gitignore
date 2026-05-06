@@ -46,3 +46,10 @@ Thumbs.db
 
 # Development planning documents
 plan.md
+
+# GUI
+gui/node_modules/
+gui/dist/
+gui/src-tauri/target/
+gui/src-tauri/binaries/
+gui/src-tauri/gen/

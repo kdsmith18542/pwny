@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/kdsmith18542/pwny/internal/core"
 	"github.com/kdsmith18542/pwny/internal/db"
+	"github.com/kdsmith18542/pwny/internal/payload"
 )
 
 type Server struct {
@@ -24,6 +25,7 @@ type Server struct {
 	jobs     *core.JobManager
 	events   *core.EventBus
 	database *db.Database
+	payloads *payload.DefaultGenerator
 }
 
 type Config struct {
@@ -32,7 +34,7 @@ type Config struct {
 	Allowed []string
 }
 
-func New(cfg Config, sm *core.SessionManager, jm *core.JobManager, bus *core.EventBus, database *db.Database) *Server {
+func New(cfg Config, sm *core.SessionManager, jm *core.JobManager, bus *core.EventBus, database *db.Database, payloads *payload.DefaultGenerator) *Server {
 	r := chi.NewRouter()
 	s := &Server{
 		router:   r,
@@ -42,6 +44,7 @@ func New(cfg Config, sm *core.SessionManager, jm *core.JobManager, bus *core.Eve
 		jobs:     jm,
 		events:   bus,
 		database: database,
+		payloads: payloads,
 	}
 	s.registerRoutes()
 	return s

@@ -13,8 +13,13 @@ import (
 	"github.com/kdsmith18542/pwny/internal/api"
 	"github.com/kdsmith18542/pwny/internal/core"
 	"github.com/kdsmith18542/pwny/internal/db"
+	"github.com/kdsmith18542/pwny/internal/payload"
 	"github.com/spf13/cobra"
 
+	_ "github.com/kdsmith18542/pwny/internal/payload/encoder"
+	_ "github.com/kdsmith18542/pwny/internal/payload/format"
+	_ "github.com/kdsmith18542/pwny/internal/payload/stagers"
+	_ "github.com/kdsmith18542/pwny/internal/payload/stages"
 	_ "github.com/kdsmith18542/pwny/modules/auxiliary/scanner"
 )
 
@@ -67,6 +72,8 @@ func runServer() error {
 	sessionMgr := core.NewSessionManager()
 	jobMgr := core.NewJobManager(eventBus)
 
+	payloadGenerator := payload.NewDefaultGenerator(payload.GlobalRegistry)
+
 	slog.Info("pwny-server starting",
 		"api_addr", fmt.Sprintf("%s:%d", cfg.API.Host, cfg.API.Port),
 		"db_path", cfg.DB.Path,
@@ -77,7 +84,7 @@ func runServer() error {
 		Host:    cfg.API.Host,
 		Port:    cfg.API.Port,
 		Allowed: cfg.API.Allowed,
-	}, sessionMgr, jobMgr, eventBus, database)
+	}, sessionMgr, jobMgr, eventBus, database, payloadGenerator)
 
 	go func() {
 		sigCh := make(chan os.Signal, 1)

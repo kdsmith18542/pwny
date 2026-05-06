@@ -47,6 +47,10 @@ func (s *Server) registerRoutes() {
 		r.Get("/{id}/ws", s.handleSessionWS)
 	})
 
+	s.router.Route("/api/v1/payload", func(r chi.Router) {
+		r.Post("/generate", s.handleGeneratePayload)
+	})
+
 	s.router.Route("/api/v1/jobs", func(r chi.Router) {
 		r.Get("/", s.handleListJobs)
 		r.Get("/{id}", s.handleGetJob)

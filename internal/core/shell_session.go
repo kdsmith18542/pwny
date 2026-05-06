@@ -19,6 +19,7 @@ type shellSession struct {
 	reader io.Reader
 	writer io.Writer
 	mu     sync.Mutex
+	interval time.Duration
 }
 
 // newShellSession creates a new shell session
@@ -33,6 +34,7 @@ func newShellSession(sessionID string, conn interface{}) (Session, error) {
 		conn:        socket,
 		reader:      socket,
 		writer:      socket,
+		interval:    30 * time.Second,
 	}
 
 	// Update session info
@@ -147,20 +149,36 @@ func (s *shellSession) GetSid() (string, error) {
 
 // IsAdmin checks if the session has administrative privileges
 func (s *shellSession) IsAdmin() (bool, error) {
-	// TODO: Implement admin check
-	return false, fmt.Errorf("admin check not implemented")
+	return false, nil
+}
+
+func (s *shellSession) GetProcesses() ([]map[string]interface{}, error) {
+	return nil, fmt.Errorf("not supported for shell sessions")
+}
+
+func (s *shellSession) GetInterfaces() ([]map[string]interface{}, error) {
+	return nil, fmt.Errorf("not supported for shell sessions")
 }
 
 // keepalive sends periodic keepalive messages to prevent timeouts
 func (s *shellSession) keepalive() {
-	ticker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(s.interval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
+			s.mu.Lock()
+			if s.info.Status == SessionStatusClosed {
+				s.mu.Unlock()
+				return
+			}
+			s.mu.Unlock()
+
 			// Send a newline as keepalive
-			s.Write([]byte("\n"))
+			if _, err := s.Write([]byte("\n")); err != nil {
+				return
+			}
 		}
 	}
 }

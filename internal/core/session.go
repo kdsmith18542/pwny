@@ -87,6 +87,12 @@ type Session interface {
 
 	// IsAdmin checks if the session has administrative privileges
 	IsAdmin() (bool, error)
+
+	// GetProcesses returns a list of running processes
+	GetProcesses() ([]map[string]interface{}, error)
+
+	// GetInterfaces returns a list of network interfaces
+	GetInterfaces() ([]map[string]interface{}, error)
 }
 
 // SessionManager handles session creation and management
